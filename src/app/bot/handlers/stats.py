@@ -8,6 +8,7 @@ from aiogram.types import Message
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.bot.formatting import header
 from app.container import Container
 
 router = Router(name="stats")
@@ -26,10 +27,12 @@ async def handle_stats(message: Message, container: Container, session: AsyncSes
         return
 
     await message.answer(
-        "📊 <b>Statystyki sprzedaży</b>\n\n"
-        f"Zamówienia dzisiaj: {stats.orders_today}\n"
-        f"Zamówienia w tym miesiącu: {stats.orders_this_month}\n"
-        f"Przychód dzisiaj: {stats.revenue_today} PLN\n"
-        f"Przychód w tym miesiącu: {stats.revenue_this_month} PLN\n"
-        f"Wszystkich zamówień w bazie: {stats.total_orders}"
+        f"{header('📊', 'STATYSTYKI SPRZEDAŻY')}\n\n"
+        "📅 <b>Dzisiaj</b>\n"
+        f"   Zamówienia: {stats.orders_today}\n"
+        f"   Przychód: {stats.revenue_today:.2f} PLN\n\n"
+        "🗓 <b>Ten miesiąc</b>\n"
+        f"   Zamówienia: {stats.orders_this_month}\n"
+        f"   Przychód: {stats.revenue_this_month:.2f} PLN\n\n"
+        f"📦 Łącznie zamówień w bazie: {stats.total_orders}"
     )

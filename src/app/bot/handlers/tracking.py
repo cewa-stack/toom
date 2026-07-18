@@ -8,6 +8,7 @@ from aiogram.types import Message
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.bot.formatting import header
 from app.container import Container
 from app.domain.exceptions.domain_exceptions import (
     MarketplaceUnavailableError,
@@ -68,9 +69,9 @@ async def handle_tracking(
         else "brak danych"
     )
     await message.answer(
-        f"🚚 <b>Status przesyłki dla zamówienia {html.quote(order_number)}</b>\n\n"
-        f"Przewoźnik: {html.quote(shipment.carrier or 'brak danych')}\n"
-        f"Numer przesyłki: {html.quote(shipment.tracking_number or 'brak danych')}\n"
-        f"Status: {html.quote(shipment.status or 'brak danych')}\n"
-        f"Aktualizacja: {updated_text}"
+        f"{header('🚚', f'PRZESYŁKA — {html.quote(order_number)}')}\n\n"
+        f"🏢 Przewoźnik: {html.quote(shipment.carrier or 'brak danych')}\n"
+        f"🔢 Numer: {html.quote(shipment.tracking_number or 'brak danych')}\n"
+        f"📌 Status: {html.quote(shipment.status or 'brak danych')}\n"
+        f"🕓 Aktualizacja: {updated_text}"
     )

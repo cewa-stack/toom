@@ -59,4 +59,6 @@ class TestOrdersHandler:
 
         await handle_orders(message, container, session=None)
 
-        message.answer.assert_awaited_once_with("Brak zapisanych zamówień.")
+        message.answer.assert_awaited_once()
+        sent_text = message.answer.call_args.args[0]
+        assert "Brak zapisanych zamówień." in sent_text

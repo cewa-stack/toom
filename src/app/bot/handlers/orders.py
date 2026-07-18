@@ -8,6 +8,7 @@ from aiogram.types import Message
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.bot.formatting import header
 from app.container import Container
 from app.domain.exceptions.domain_exceptions import OrderNotFoundError
 
@@ -21,16 +22,18 @@ async def handle_orders(message: Message, container: Container, session: AsyncSe
     orders = await orders_service.get_recent_orders(limit=10)
 
     if not orders:
-        await message.answer("Brak zapisanych zamówień.")
+        await message.answer(f"{header('📋', 'OSTATNIE ZAMÓWIENIA')}\n\nBrak zapisanych zamówień.")
         return
 
-    lines = ["📋 <b>Ostatnie zamówienia:</b>\n"]
+    blocks = [header("📋", f"OSTATNIE ZAMÓWIENIA ({len(orders)})")]
     for order in orders:
-        lines.append(
-            f"• <b>{html.quote(order.external_id)}</b> - {html.quote(order.buyer.login)} - "
-            f"{order.total_amount} {order.currency} ({html.quote(order.status)})"
+        blocks.append(
+            f"🛒 <code>{html.quote(order.external_id)}</code>\n"
+            f"   👤 {html.quote(order.buyer.login)}\n"
+            f"   💰 {order.total_amount} {order.currency}\n"
+            f"   📌 {html.quote(order.status)}"
         )
-    await message.answer("\n".join(lines))
+    await message.answer("\n\n".join(blocks))
 
 
 @router.message(Command("order"))
@@ -58,14 +61,14 @@ async def handle_order_detail(
         return
 
     products_text = "\n".join(
-        f"  - {html.quote(p.name)} x{p.quantity} ({p.unit_price} {order.currency})"
+        f"  • {html.quote(p.name)} x{p.quantity} ({p.unit_price} {order.currency})"
         for p in order.products
     )
     await message.answer(
-        f"📦 <b>Zamówienie {html.quote(order.external_id)}</b>\n\n"
-        f"Kupujący: {html.quote(order.buyer.login)}\n"
-        f"Kwota: {order.total_amount} {order.currency}\n"
-        f"Status: {html.quote(order.status)}\n"
-        f"Data: {order.order_date.strftime('%Y-%m-%d %H:%M')}\n\n"
-        f"Produkty:\n{products_text}"
+        f"{header('📦', f'ZAMÓWIENIE {html.quote(order.external_id)}')}\n\n"
+        f"👤 Kupujący: {html.quote(order.buyer.login)}\n"
+        f"💰 Kwota: {order.total_amount} {order.currency}\n"
+        f"📌 Status: {html.quote(order.status)}\n"
+        f"📅 Data: {order.order_date.strftime('%Y-%m-%d %H:%M')}\n\n"
+        f"🛍 <b>Produkty:</b>\n{products_text}"
     )

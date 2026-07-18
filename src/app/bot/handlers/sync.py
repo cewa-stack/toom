@@ -7,6 +7,7 @@ from aiogram.filters import Command
 from aiogram.types import Message
 from loguru import logger
 
+from app.bot.formatting import header
 from app.container import Container
 from app.domain.exceptions.domain_exceptions import MarketplaceUnavailableError
 
@@ -41,7 +42,7 @@ async def handle_sync(message: Message, container: Container) -> None:
         return
 
     await message.answer(
-        f"✅ Synchronizacja zakończona.\n"
-        f"Nowych zamówień: {result.new_orders_count}\n"
-        f"Sprawdzonych zamówień: {result.checked_orders_count}"
+        f"{header('✅', 'SYNCHRONIZACJA ZAKOŃCZONA')}\n\n"
+        f"🆕 Nowe zamówienia: {result.new_orders_count}\n"
+        f"🔍 Sprawdzone: {result.checked_orders_count}"
     )

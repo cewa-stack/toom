@@ -8,6 +8,7 @@ from aiogram.types import Message
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.bot.formatting import header
 from app.container import Container
 
 router = Router(name="logs")
@@ -27,14 +28,16 @@ async def handle_logs(message: Message, container: Container, session: AsyncSess
         await message.answer("Wystąpił błąd podczas pobierania logów.")
         return
 
+    title = header("📜", "OSTATNIE ZDARZENIA")
+
     if not events:
-        await message.answer("Brak zarejestrowanych zdarzeń.")
+        await message.answer(f"{title}\n\nBrak zarejestrowanych zdarzeń.")
         return
 
-    lines = ["📜 <b>Ostatnie zdarzenia:</b>\n"]
+    lines = [title, ""]
     for event in events:
         icon = _LEVEL_ICONS.get(event.level, "•")
         timestamp = event.created_at.strftime("%Y-%m-%d %H:%M")
-        lines.append(f"{icon} [{timestamp}] {event.event_type}")
+        lines.append(f"{icon} <code>{timestamp}</code>  {event.event_type}")
 
     await message.answer("\n".join(lines))

@@ -8,6 +8,7 @@ from aiogram.types import Message
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.bot.formatting import header
 from app.container import Container
 
 router = Router(name="search")
@@ -32,14 +33,15 @@ async def handle_search(
         await message.answer("Wystąpił błąd podczas wyszukiwania.")
         return
 
+    title = f"WYNIKI DLA „{html.quote(query)}”"
     if not results:
-        await message.answer(f"Brak wyników dla zapytania: <i>{html.quote(query)}</i>")
+        await message.answer(f"{header('🔍', title)}\n\nBrak wyników.")
         return
 
-    lines = [f"🔍 <b>Wyniki wyszukiwania dla '{html.quote(query)}':</b>\n"]
+    blocks = [header("🔍", f"{title} ({len(results)})")]
     for order in results[:15]:
-        lines.append(
-            f"• <b>{html.quote(order.external_id)}</b> - {html.quote(order.buyer.login)} - "
-            f"{order.total_amount} {order.currency}"
+        blocks.append(
+            f"🛒 <code>{html.quote(order.external_id)}</code>\n"
+            f"   👤 {html.quote(order.buyer.login)} — {order.total_amount} {order.currency}"
         )
-    await message.answer("\n".join(lines))
+    await message.answer("\n\n".join(blocks))
