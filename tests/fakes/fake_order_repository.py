@@ -1,0 +1,62 @@
+"""Fake implementacja OrderRepository - działa w pamięci, bez bazy danych."""
+
+from __future__ import annotations
+
+from datetime import datetime
+
+from app.domain.entities.order import Order
+from app.domain.interfaces.order_repository import OrderRepository
+
+
+class FakeOrderRepository(OrderRepository):
+    """
+    Implementacja OrderRepository trzymająca dane w zwykłej liście Pythona.
+
+    Używana w testach jednostkowych serwisów, żeby nie zależeć od
+    prawdziwej bazy danych.
+    """
+
+    def __init__(self) -> None:
+        self._orders: list[Order] = []
+        self._notified: set[tuple[str, str]] = set()
+
+    async def exists(self, marketplace: str, external_id: str) -> bool:
+        return any(
+            o.marketplace == marketplace and o.external_id == external_id
+            for o in self._orders
+        )
+
+    async def save(self, order: Order) -> None:
+        self._orders.append(order)
+
+    async def get_by_external_id(self, external_id: str) -> Order | None:
+        return next((o for o in self._orders if o.external_id == external_id), None)
+
+    async def get_recent(self, limit: int) -> list[Order]:
+        return sorted(self._orders, key=lambda o: o.order_date, reverse=True)[:limit]
+
+    async def search(self, query: str) -> list[Order]:
+        query_lower = query.lower()
+        return [
+            o
+            for o in self._orders
+            if query_lower in o.external_id.lower()
+            or query_lower in o.buyer.login.lower()
+            or any(query_lower in p.name.lower() for p in o.products)
+        ]
+
+    async def count_since(self, since: datetime) -> int:
+        return sum(1 for o in self._orders if o.order_date >= since)
+
+    async def sum_amount_since(self, since: datetime) -> float:
+        return float(sum(o.total_amount for o in self._orders if o.order_date >= since))
+
+    async def count_all(self) -> int:
+        return len(self._orders)
+
+    async def mark_as_notified(self, marketplace: str, external_id: str) -> None:
+        self._notified.add((marketplace, external_id))
+
+    def is_notified(self, marketplace: str, external_id: str) -> bool:
+        """Metoda pomocnicza tylko dla testów - sprawdza znacznik powiadomienia."""
+        return (marketplace, external_id) in self._notified

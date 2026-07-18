@@ -1,0 +1,28 @@
+[Unit]
+Description=Comcio - asystent e-commerce - osobisty asystent sprzedazy 24/7
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/allegro-assistant
+ExecStart=/home/pi/.local/bin/uv run python -m app.main
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+Environment=PYTHONUNBUFFERED=1
+
+# Ograniczenia zasobow - chronia reszte systemu Raspberry Pi
+MemoryMax=768M
+MemoryHigh=512M
+CPUQuota=150%
+
+# Ograniczenia bezpieczenstwa
+NoNewPrivileges=true
+ProtectSystem=full
+ReadWritePaths=/home/pi/allegro-assistant
+
+[Install]
+WantedBy=multi-user.target

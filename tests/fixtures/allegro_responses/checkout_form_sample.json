@@ -1,0 +1,31 @@
+{
+  "id": "ABC123-DEF456",
+  "status": "READY_FOR_PROCESSING",
+  "buyer": {
+    "login": "kupujacy_testowy",
+    "email": "kupujacy@example.com",
+    "firstName": "Jan",
+    "lastName": "Testowy",
+    "phoneNumber": "+48123456789"
+  },
+  "lineItems": [
+    {
+      "offer": {
+        "id": "OFFER-1",
+        "name": "Testowy produkt A"
+      },
+      "quantity": 2,
+      "price": {
+        "amount": "25.50",
+        "currency": "PLN"
+      }
+    }
+  ],
+  "summary": {
+    "totalToPay": {
+      "amount": "51.00",
+      "currency": "PLN"
+    }
+  },
+  "updatedAt": "2026-07-01T12:30:00Z"
+}
