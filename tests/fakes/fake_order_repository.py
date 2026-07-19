@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import datetime
 
 from app.domain.entities.order import Order
@@ -53,6 +54,16 @@ class FakeOrderRepository(OrderRepository):
 
     async def count_all(self) -> int:
         return len(self._orders)
+
+    async def update_status(
+        self, marketplace: str, external_id: str, status: str
+    ) -> None:
+        self._orders = [
+            replace(o, status=status)
+            if o.marketplace == marketplace and o.external_id == external_id
+            else o
+            for o in self._orders
+        ]
 
     async def mark_as_notified(self, marketplace: str, external_id: str) -> None:
         self._notified.add((marketplace, external_id))

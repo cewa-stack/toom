@@ -6,6 +6,7 @@ from aiogram import Bot, html
 from loguru import logger
 
 from app.domain.entities.order import Order
+from app.domain.entities.order_return import OrderReturn
 from app.domain.interfaces.notifier import Notifier
 
 
@@ -36,6 +37,41 @@ class TelegramNotifier(Notifier):
             f"Kwota: {order.total_amount} {order.currency}\n"
             f"Produkty: {html.quote(order.products_summary)}\n"
             f"Data: {order.order_date.strftime('%Y-%m-%d %H:%M')}"
+        )
+        await self.send_text(text)
+
+    async def notify_order_cancelled(self, order: Order) -> None:
+        """
+        Wysyła sformatowane powiadomienie o anulowaniu zamówienia.
+
+        Dane z marketplace są escapowane z tego samego powodu,
+        co w notify_new_order (parse_mode=HTML).
+        """
+        text = (
+            "❌ <b>ZAMÓWIENIE ANULOWANE</b>\n\n"
+            f"Numer: {html.quote(order.external_id)}\n"
+            f"Kupujący: {html.quote(order.buyer.login)}\n"
+            f"Kwota: {order.total_amount} {order.currency}\n"
+            f"Produkty: {html.quote(order.products_summary)}\n"
+            f"Data zamówienia: {order.order_date.strftime('%Y-%m-%d %H:%M')}"
+        )
+        await self.send_text(text)
+
+    async def notify_order_return(self, order_return: OrderReturn) -> None:
+        """
+        Wysyła sformatowane powiadomienie o zwrocie produktów z zamówienia.
+
+        Dane z marketplace są escapowane z tego samego powodu,
+        co w notify_new_order (parse_mode=HTML).
+        """
+        text = (
+            "↩️ <b>ZWROT PRODUKTÓW</b>\n\n"
+            f"Zamówienie: {html.quote(order_return.order_external_id)}\n"
+            f"Numer zwrotu: {html.quote(order_return.external_id)}\n"
+            f"Kupujący: {html.quote(order_return.buyer_login)}\n"
+            f"Produkty: {html.quote(order_return.products_summary)}\n"
+            f"Status: {html.quote(order_return.status)}\n"
+            f"Data zgłoszenia: {order_return.created_at.strftime('%Y-%m-%d %H:%M')}"
         )
         await self.send_text(text)
 

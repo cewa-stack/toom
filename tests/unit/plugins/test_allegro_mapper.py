@@ -8,6 +8,7 @@ from pathlib import Path
 
 from app.infrastructure.plugins.allegro.mapper import (
     map_checkout_form_to_order,
+    map_customer_return_to_domain,
     map_shipment_to_domain,
 )
 
@@ -69,3 +70,45 @@ class TestAllegroMapper:
         assert shipment.carrier == "DPD"
         assert shipment.tracking_number == "1234567890"
         assert shipment.status == "SENT"
+
+    def test_mapuje_zwrot_klienta_z_pelnymi_danymi(self):
+        """Sprawdza mapowanie wszystkich kluczowych pól zwrotu klienta."""
+        raw = {
+            "id": "RETURN-XYZ",
+            "orderId": "ABC123-DEF456",
+            "buyer": {"login": "kupujacy_testowy"},
+            "items": [
+                {
+                    "offerId": "OFFER-1",
+                    "name": "Testowy produkt A",
+                    "quantity": 2,
+                    "price": {"amount": "25.50", "currency": "PLN"},
+                }
+            ],
+            "status": "CREATED",
+            "createdAt": "2026-07-02T10:00:00Z",
+        }
+
+        order_return = map_customer_return_to_domain(raw)
+
+        assert order_return.external_id == "RETURN-XYZ"
+        assert order_return.marketplace == "allegro"
+        assert order_return.order_external_id == "ABC123-DEF456"
+        assert order_return.buyer_login == "kupujacy_testowy"
+        assert order_return.status == "CREATED"
+        assert len(order_return.products) == 1
+        assert order_return.products[0].name == "Testowy produkt A"
+        assert order_return.products[0].quantity == 2
+        assert order_return.products[0].unit_price == Decimal("25.50")
+        assert "Testowy produkt A x2" in order_return.products_summary
+
+    def test_mapuje_zwrot_z_minimalnymi_danymi(self):
+        """Brak opcjonalnych pól zwrotu nie powinien powodować błędu."""
+        order_return = map_customer_return_to_domain({"id": "RETURN-MIN"})
+
+        assert order_return.external_id == "RETURN-MIN"
+        assert order_return.order_external_id == "nieznane"
+        assert order_return.buyer_login == "nieznany"
+        assert order_return.status == "UNKNOWN"
+        assert order_return.products == []
+        assert order_return.products_summary == "brak danych"

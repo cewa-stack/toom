@@ -13,6 +13,7 @@ from abc import ABC, abstractmethod
 
 from app.domain.entities.customer import Customer
 from app.domain.entities.order import Order
+from app.domain.entities.order_return import OrderReturn
 from app.domain.entities.product import Product
 from app.domain.entities.shipment import Shipment
 
@@ -49,6 +50,16 @@ class MarketplacePlugin(ABC):
             Lista encji domenowych Order (nie surowy JSON marketplace).
         """
         raise NotImplementedError
+
+    async def get_customer_returns(self) -> list[OrderReturn]:
+        """
+        Pobiera listę zwrotów klientów z marketplace.
+
+        Metoda ma domyślną implementację (pusta lista), aby nie wymuszać
+        obsługi zwrotów na marketplace'ach, które ich nie udostępniają -
+        realne pluginy (np. Allegro) powinny ją nadpisać.
+        """
+        return []
 
     @abstractmethod
     async def get_order(self, external_id: str) -> Order:

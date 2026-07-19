@@ -43,6 +43,22 @@ class DuplicateOrderError(DomainError):
         )
 
 
+class DuplicateReturnError(DomainError):
+    """
+    Zwrot o danym (marketplace, external_id) już istnieje w bazie.
+
+    Rzucane przez repozytorium, gdy unique constraint zablokuje zapis -
+    wyścig między exists() a save() w dwóch równoległych synchronizacjach.
+    """
+
+    def __init__(self, marketplace: str, external_id: str) -> None:
+        self.marketplace = marketplace
+        self.external_id = external_id
+        super().__init__(
+            f"Zwrot {marketplace}/{external_id} już istnieje w bazie"
+        )
+
+
 class ShipmentNotAvailableError(DomainError):
     """Zamówienie istnieje, ale sprzedawca jeszcze nie nadał żadnej przesyłki."""
 

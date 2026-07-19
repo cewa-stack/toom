@@ -15,6 +15,7 @@ from app.database.models import (  # noqa: F401 - import wymagany dla autogenera
     EventModel,
     OrderModel,
     ProductModel,
+    ReturnModel,
     SettingsModel,
     ShipmentModel,
     TokenModel,

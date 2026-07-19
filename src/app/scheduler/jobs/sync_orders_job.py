@@ -43,9 +43,12 @@ async def run_sync_orders_job(
         await sync_service.publish_sync_events(result)
         sync_status.mark_sync_completed()
         logger.info(
-            "Synchronizacja zakończona: {} nowych, {} sprawdzonych",
+            "Synchronizacja zakończona: {} nowych, {} sprawdzonych, "
+            "{} anulowanych, {} nowych zwrotów",
             result.new_orders_count,
             result.checked_orders_count,
+            len(result.cancelled_orders),
+            len(result.new_returns),
         )
     except MarketplaceUnavailableError:
         logger.warning(

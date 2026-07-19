@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from app.domain.entities.order import Order
+from app.domain.entities.order_return import OrderReturn
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,6 +33,20 @@ class OrderUpdated(DomainEvent):
     """Emitowane, gdy status znanego zamówienia się zmienił."""
 
     order: Order
+
+
+@dataclass(frozen=True, slots=True)
+class OrderCancelled(DomainEvent):
+    """Emitowane, gdy status znanego zamówienia zmienił się na anulowane."""
+
+    order: Order
+
+
+@dataclass(frozen=True, slots=True)
+class OrderReturnCreated(DomainEvent):
+    """Emitowane, gdy synchronizacja wykryje nowy zwrot produktów z zamówienia."""
+
+    order_return: OrderReturn
 
 
 @dataclass(frozen=True, slots=True)

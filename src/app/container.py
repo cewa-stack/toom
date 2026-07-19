@@ -24,6 +24,7 @@ from app.infrastructure.plugins.allegro.plugin import AllegroPlugin
 from app.infrastructure.telegram.telegram_notifier import TelegramNotifier
 from app.repositories.sqlite_event_repository import SqliteEventRepository
 from app.repositories.sqlite_order_repository import SqliteOrderRepository
+from app.repositories.sqlite_return_repository import SqliteReturnRepository
 from app.repositories.sqlite_shipment_repository import SqliteShipmentRepository
 from app.repositories.sqlite_token_store import SqliteTokenStore
 from app.services.backup_service import BackupService
@@ -89,8 +90,11 @@ class Container:
     def orders_service(self, session: AsyncSession) -> SyncOrdersService:
         """Buduje SyncOrdersService (używany też przez /orders i /order)."""
         order_repository = SqliteOrderRepository(session)
+        return_repository = SqliteReturnRepository(session)
         plugin = self.build_plugin(session)
-        return SyncOrdersService(plugin, order_repository, self.event_bus)
+        return SyncOrdersService(
+            plugin, order_repository, self.event_bus, return_repository
+        )
 
     def sync_orders_service(self, session: AsyncSession) -> SyncOrdersService:
         """Alias semantyczny używany przez komendę /sync i scheduler."""

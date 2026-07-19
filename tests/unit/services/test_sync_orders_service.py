@@ -5,7 +5,11 @@ from __future__ import annotations
 import pytest
 
 from app.core.event_bus.bus import EventBus
-from app.core.event_bus.events import OrderCreated
+from app.core.event_bus.events import (
+    OrderCancelled,
+    OrderCreated,
+    OrderReturnCreated,
+)
 from app.domain.exceptions.domain_exceptions import MarketplaceUnavailableError
 from app.services.sync_orders_service import SyncOrdersService
 
@@ -83,3 +87,154 @@ class TestSyncOrdersService:
 
         assert result.new_orders_count == 1
         assert result.checked_orders_count == 2
+
+
+class TestSyncOrderCancellation:
+    """Testy wykrywania anulowania znanych zamówień podczas synchronizacji."""
+
+    @pytest.mark.asyncio
+    async def test_anulowanie_zamowienia_emituje_order_cancelled(
+        self, fake_marketplace_plugin, fake_order_repository, sample_order
+    ):
+        """Zmiana statusu na CANCELLED powinna wyemitować OrderCancelled."""
+        from dataclasses import replace
+
+        await fake_order_repository.save(sample_order)
+        cancelled_order = replace(sample_order, status="CANCELLED")
+        fake_marketplace_plugin.orders_to_return = [cancelled_order]
+        event_bus = EventBus()
+        received_events: list[OrderCancelled] = []
+
+        async def capture(event: OrderCancelled) -> None:
+            received_events.append(event)
+
+        event_bus.subscribe(OrderCancelled, capture)
+
+        service = SyncOrdersService(fake_marketplace_plugin, fake_order_repository, event_bus)
+        result = await service.sync_new_orders()
+        await service.publish_sync_events(result)
+
+        assert result.cancelled_orders == (cancelled_order,)
+        assert len(received_events) == 1
+        assert received_events[0].order.external_id == sample_order.external_id
+        stored = await fake_order_repository.get_by_external_id(sample_order.external_id)
+        assert stored is not None and stored.status == "CANCELLED"
+
+    @pytest.mark.asyncio
+    async def test_zwykla_zmiana_statusu_nie_emituje_order_cancelled(
+        self, fake_marketplace_plugin, fake_order_repository, sample_order
+    ):
+        """Zmiana statusu inna niż anulowanie aktualizuje bazę bez zdarzenia."""
+        from dataclasses import replace
+
+        await fake_order_repository.save(sample_order)
+        updated_order = replace(sample_order, status="SENT")
+        fake_marketplace_plugin.orders_to_return = [updated_order]
+        event_bus = EventBus()
+
+        service = SyncOrdersService(fake_marketplace_plugin, fake_order_repository, event_bus)
+        result = await service.sync_new_orders()
+
+        assert result.cancelled_orders == ()
+        stored = await fake_order_repository.get_by_external_id(sample_order.external_id)
+        assert stored is not None and stored.status == "SENT"
+
+    @pytest.mark.asyncio
+    async def test_juz_anulowane_zamowienie_nie_jest_zglaszane_ponownie(
+        self, fake_marketplace_plugin, fake_order_repository, sample_order
+    ):
+        """Zamówienie już anulowane w bazie nie generuje kolejnego powiadomienia."""
+        from dataclasses import replace
+
+        cancelled_order = replace(sample_order, status="CANCELLED")
+        await fake_order_repository.save(cancelled_order)
+        fake_marketplace_plugin.orders_to_return = [cancelled_order]
+        event_bus = EventBus()
+
+        service = SyncOrdersService(fake_marketplace_plugin, fake_order_repository, event_bus)
+        result = await service.sync_new_orders()
+
+        assert result.cancelled_orders == ()
+
+
+class TestSyncCustomerReturns:
+    """Testy wykrywania zwrotów klientów podczas synchronizacji."""
+
+    @pytest.mark.asyncio
+    async def test_nowy_zwrot_jest_zapisywany_i_emituje_zdarzenie(
+        self,
+        fake_marketplace_plugin,
+        fake_order_repository,
+        fake_return_repository,
+        sample_return,
+    ):
+        """Nowy zwrot powinien zostać zapisany i wyemitować OrderReturnCreated."""
+        fake_marketplace_plugin.returns_to_return = [sample_return]
+        event_bus = EventBus()
+        received_events: list[OrderReturnCreated] = []
+
+        async def capture(event: OrderReturnCreated) -> None:
+            received_events.append(event)
+
+        event_bus.subscribe(OrderReturnCreated, capture)
+
+        service = SyncOrdersService(
+            fake_marketplace_plugin,
+            fake_order_repository,
+            event_bus,
+            fake_return_repository,
+        )
+        result = await service.sync_new_orders()
+        await service.publish_sync_events(result)
+
+        assert result.new_returns == (sample_return,)
+        assert await fake_return_repository.exists("allegro", sample_return.external_id)
+        assert len(received_events) == 1
+        assert received_events[0].order_return.external_id == sample_return.external_id
+
+    @pytest.mark.asyncio
+    async def test_znany_zwrot_nie_jest_zglaszany_ponownie(
+        self,
+        fake_marketplace_plugin,
+        fake_order_repository,
+        fake_return_repository,
+        sample_return,
+    ):
+        """Zwrot już zapisany wcześniej nie powinien generować kolejnego zdarzenia."""
+        await fake_return_repository.save(sample_return)
+        fake_marketplace_plugin.returns_to_return = [sample_return]
+        event_bus = EventBus()
+
+        service = SyncOrdersService(
+            fake_marketplace_plugin,
+            fake_order_repository,
+            event_bus,
+            fake_return_repository,
+        )
+        result = await service.sync_new_orders()
+
+        assert result.new_returns == ()
+
+    @pytest.mark.asyncio
+    async def test_blad_pobierania_zwrotow_nie_przerywa_synchronizacji(
+        self,
+        fake_marketplace_plugin,
+        fake_order_repository,
+        fake_return_repository,
+        sample_order,
+    ):
+        """Niedostępność API zwrotów nie może zablokować synchronizacji zamówień."""
+        fake_marketplace_plugin.orders_to_return = [sample_order]
+        fake_marketplace_plugin.should_raise_returns_api_error = True
+        event_bus = EventBus()
+
+        service = SyncOrdersService(
+            fake_marketplace_plugin,
+            fake_order_repository,
+            event_bus,
+            fake_return_repository,
+        )
+        result = await service.sync_new_orders()
+
+        assert result.new_orders_count == 1
+        assert result.new_returns == ()

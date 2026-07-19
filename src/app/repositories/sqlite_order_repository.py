@@ -142,6 +142,21 @@ class SqliteOrderRepository(OrderRepository):
         result = await self._session.execute(stmt)
         return result.scalar_one() or 0
 
+    async def update_status(
+        self, marketplace: str, external_id: str, status: str
+    ) -> None:
+        """Aktualizuje status zamówienia wykryty podczas synchronizacji."""
+        stmt = (
+            update(OrderModel)
+            .where(
+                OrderModel.marketplace == marketplace,
+                OrderModel.external_id == external_id,
+            )
+            .values(status=status)
+        )
+        await self._session.execute(stmt)
+        await self._session.flush()
+
     async def mark_as_notified(self, marketplace: str, external_id: str) -> None:
         """Ustawia znacznik czasu wysłania powiadomienia dla danego zamówienia."""
         stmt = (

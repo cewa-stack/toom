@@ -5,6 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 
 from app.domain.entities.order import Order
+from app.domain.entities.order_return import OrderReturn
 
 
 class Notifier(ABC):
@@ -19,6 +20,16 @@ class Notifier(ABC):
     @abstractmethod
     async def notify_new_order(self, order: Order) -> None:
         """Wysyła powiadomienie o nowym zamówieniu."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def notify_order_cancelled(self, order: Order) -> None:
+        """Wysyła powiadomienie o anulowaniu zamówienia."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def notify_order_return(self, order_return: OrderReturn) -> None:
+        """Wysyła powiadomienie o zwrocie produktów z zamówienia."""
         raise NotImplementedError
 
     @abstractmethod

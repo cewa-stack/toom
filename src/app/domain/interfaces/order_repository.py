@@ -63,6 +63,18 @@ class OrderRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    async def update_status(
+        self, marketplace: str, external_id: str, status: str
+    ) -> None:
+        """
+        Aktualizuje status istniejącego zamówienia.
+
+        Wywoływane przez synchronizację, gdy marketplace zwróci inny
+        status niż zapisany w bazie (np. anulowanie zamówienia).
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     async def mark_as_notified(self, marketplace: str, external_id: str) -> None:
         """
         Oznacza zamówienie jako powiadomione (ustawia notified_at = teraz).

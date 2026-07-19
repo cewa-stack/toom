@@ -14,6 +14,7 @@ from loguru import logger
 
 from app.domain.entities.customer import Customer
 from app.domain.entities.order import Order
+from app.domain.entities.order_return import OrderReturn
 from app.domain.entities.product import Product
 from app.domain.entities.shipment import Shipment
 from app.domain.exceptions.domain_exceptions import TokenExpiredError
@@ -28,6 +29,7 @@ from app.infrastructure.plugins.allegro.client import AllegroApiClient
 from app.infrastructure.plugins.allegro.config import AllegroConfig
 from app.infrastructure.plugins.allegro.mapper import (
     map_checkout_form_to_order,
+    map_customer_return_to_domain,
     map_shipments_list_to_domain,
 )
 from app.utils.time import utc_now
@@ -134,6 +136,17 @@ class AllegroPlugin(MarketplacePlugin):
         )
         raw_orders = response.get("checkoutForms", [])
         return [map_checkout_form_to_order(raw) for raw in raw_orders]
+
+    async def get_customer_returns(self) -> list[OrderReturn]:
+        """Pobiera listę zwrotów klientów (customer returns) z Allegro."""
+        access_token = await self._get_valid_access_token()
+        response = await self._api_client.get(
+            "/order/customer-returns",
+            access_token,
+            params={"limit": "50"},
+        )
+        raw_returns = response.get("customerReturns", [])
+        return [map_customer_return_to_domain(raw) for raw in raw_returns]
 
     async def get_order(self, external_id: str) -> Order:
         """Pobiera szczegóły pojedynczego zamówienia po jego numerze."""

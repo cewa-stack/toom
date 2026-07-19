@@ -14,10 +14,12 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from app.database.base import Base
 from app.domain.entities.customer import Customer
 from app.domain.entities.order import Order
+from app.domain.entities.order_return import OrderReturn
 from app.domain.entities.product import Product
 from tests.fakes.fake_marketplace_plugin import FakeMarketplacePlugin
 from tests.fakes.fake_notifier import FakeNotifier
 from tests.fakes.fake_order_repository import FakeOrderRepository
+from tests.fakes.fake_return_repository import FakeReturnRepository
 
 
 @pytest.fixture
@@ -40,6 +42,33 @@ def sample_order() -> Order:
         status="NEW",
         order_date=datetime(2026, 7, 1, 10, 0, 0),
     )
+
+
+@pytest.fixture
+def sample_return() -> OrderReturn:
+    """Zwraca przykładowy, w pełni wypełniony zwrot klienta do użytku w testach."""
+    return OrderReturn(
+        external_id="RETURN-001",
+        marketplace="allegro",
+        order_external_id="ORDER-001",
+        buyer_login="jan_kowalski",
+        products=[
+            Product(
+                external_id="PROD-1",
+                name="Kubek ceramiczny",
+                quantity=1,
+                unit_price=Decimal("19.99"),
+            )
+        ],
+        status="CREATED",
+        created_at=datetime(2026, 7, 2, 12, 0, 0),
+    )
+
+
+@pytest.fixture
+def fake_return_repository() -> FakeReturnRepository:
+    """Zwraca świeżą, pustą instancję fake repozytorium zwrotów."""
+    return FakeReturnRepository()
 
 
 @pytest.fixture

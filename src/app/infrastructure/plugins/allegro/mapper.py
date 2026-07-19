@@ -13,6 +13,7 @@ from typing import Any
 
 from app.domain.entities.customer import Customer
 from app.domain.entities.order import Order
+from app.domain.entities.order_return import OrderReturn
 from app.domain.entities.product import Product
 from app.domain.entities.shipment import Shipment
 from app.utils.time import utc_now
@@ -62,6 +63,38 @@ def map_checkout_form_to_order(raw: dict[str, Any]) -> Order:
         currency=total_raw.get("currency", "PLN"),
         status=raw.get("status", "UNKNOWN"),
         order_date=_parse_datetime(raw.get("updatedAt") or raw.get("boughtAt")),
+    )
+
+
+def map_customer_return_to_domain(raw: dict[str, Any]) -> OrderReturn:
+    """
+    Mapuje pojedynczy 'customer return' (zwrot klienta) z Allegro na OrderReturn.
+
+    Args:
+        raw: Surowy słownik JSON reprezentujący jeden zwrot, zgodny
+            ze strukturą zwracaną przez GET /order/customer-returns.
+
+    Returns:
+        Encja domenowa OrderReturn.
+    """
+    products = [
+        Product(
+            external_id=item.get("offerId", ""),
+            name=item.get("name", "nieznany produkt"),
+            quantity=int(item.get("quantity", 1)),
+            unit_price=Decimal(str(item.get("price", {}).get("amount", "0.00"))),
+        )
+        for item in raw.get("items", [])
+    ]
+
+    return OrderReturn(
+        external_id=raw["id"],
+        marketplace="allegro",
+        order_external_id=raw.get("orderId", "nieznane"),
+        buyer_login=raw.get("buyer", {}).get("login", "nieznany"),
+        products=products,
+        status=raw.get("status", "UNKNOWN"),
+        created_at=_parse_datetime(raw.get("createdAt")),
     )
 
 

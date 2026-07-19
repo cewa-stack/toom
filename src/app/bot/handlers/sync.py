@@ -44,5 +44,7 @@ async def handle_sync(message: Message, container: Container) -> None:
     await message.answer(
         f"{header('✅', 'SYNCHRONIZACJA ZAKOŃCZONA')}\n\n"
         f"🆕 Nowe zamówienia: {result.new_orders_count}\n"
-        f"🔍 Sprawdzone: {result.checked_orders_count}"
+        f"🔍 Sprawdzone: {result.checked_orders_count}\n"
+        f"❌ Anulowane: {len(result.cancelled_orders)}\n"
+        f"↩️ Nowe zwroty: {len(result.new_returns)}"
     )

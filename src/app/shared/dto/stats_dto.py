@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.domain.entities.order import Order
+    from app.domain.entities.order_return import OrderReturn
 
 
 @dataclass(frozen=True, slots=True)
@@ -27,12 +28,16 @@ class SyncResult:
 
     `new_orders` zawiera pełne encje nowo zapisanych zamówień - służy
     do opublikowania zdarzeń OrderCreated PO zatwierdzeniu transakcji
-    (zob. SyncOrdersService.publish_sync_events).
+    (zob. SyncOrdersService.publish_sync_events). Analogicznie
+    `cancelled_orders` (zamówienia, których status zmienił się na
+    anulowane) oraz `new_returns` (nowo wykryte zwroty klientów).
     """
 
     new_orders_count: int
     checked_orders_count: int
     new_orders: tuple[Order, ...] = field(default=())
+    cancelled_orders: tuple[Order, ...] = field(default=())
+    new_returns: tuple[OrderReturn, ...] = field(default=())
 
 
 @dataclass(frozen=True, slots=True)
