@@ -1,5 +1,5 @@
 """
-Punkt wejścia aplikacji Comcio - asystent e-commerce.
+Punkt wejścia aplikacji TOOM.
 
 Spina wszystkie moduły: konfigurację, logowanie, kontener DI, bota
 Telegram, scheduler i API HTTP - i uruchamia je współbieżnie w jednym
@@ -80,7 +80,7 @@ def _register_bot_routers(dispatcher: Dispatcher) -> None:
 
 def _create_fastapi_app(container: Container) -> FastAPI:
     """Tworzy instancję FastAPI z podłączonym kontenerem DI w stanie aplikacji."""
-    app = FastAPI(title="Comcio - asystent e-commerce API", docs_url="/docs")
+    app = FastAPI(title="TOOM API", docs_url="/docs")
     app.state.container = container
     app.include_router(api_router)
     return app
@@ -94,7 +94,7 @@ async def _run_application() -> None:
     configure_logging(settings.logging, settings.app.debug)
 
     logger.info("=" * 60)
-    logger.info("Uruchamianie Comcio - asystenta e-commerce")
+    logger.info("Uruchamianie TOOM")
     logger.info("=" * 60)
 
     bot = create_bot(settings.telegram)
@@ -168,11 +168,11 @@ async def _run_application() -> None:
     )
     api_task = asyncio.create_task(uvicorn_server.serve())
 
-    logger.info("Comcio - asystent e-commerce w pełni uruchomiony i gotowy do pracy")
+    logger.info("TOOM został w pełni uruchomiony i jest gotowy do pracy")
 
     await stop_event.wait()
 
-    logger.info("Zamykanie aplikacji Comcio - asystenta e-commerce...")
+    logger.info("Zamykanie aplikacji TOOM...")
 
     scheduler.shutdown(wait=False)
 

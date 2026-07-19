@@ -1,5 +1,5 @@
 """
-Wspólne elementy formatowania wiadomości bota Comcio.
+Wspólne elementy formatowania wiadomości bota TOOM.
 
 Trzymanie separatora i wspólnych fragmentów w jednym miejscu gwarantuje,
 że wszystkie komendy wyglądają spójnie - zmiana stylu w jednym miejscu

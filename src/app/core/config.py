@@ -115,7 +115,7 @@ class AllegroSettings(BaseSettings):
 
 
 class TelegramSettings(BaseSettings):
-    """Konfiguracja bota Telegram (aiogram) - Comcio, asystent e-commerce."""
+    """Konfiguracja bota Telegram (aiogram) - TOOM."""
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -137,7 +137,7 @@ class DatabaseSettings(BaseSettings):
     )
 
     database_url: str = Field(
-        default="sqlite+aiosqlite:///./data/allegro_assistant.db",
+        default="sqlite+aiosqlite:///./data/toom.db",
         alias="DATABASE_URL",
     )
     echo: bool = Field(default=False, alias="DATABASE_ECHO")

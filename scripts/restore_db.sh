@@ -10,8 +10,8 @@
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DB_PATH="${PROJECT_DIR}/data/allegro_assistant.db"
-SERVICE_NAME="comcio-assistant"
+DB_PATH="${PROJECT_DIR}/data/toom.db"
+SERVICE_NAME="toom"
 
 if [ $# -ne 1 ]; then
     echo "Uzycie: $0 <sciezka_do_pliku_kopii_zapasowej>" >&2

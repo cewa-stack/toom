@@ -1,11 +1,11 @@
-# Deployment - Comcio, asystent e-commerce
+# Deployment - TOOM
 
 ## Wdrożenie natywne (systemd) - zalecane na Raspberry Pi
 
 ### Krok 1: Instalacja zależności
 
 ```bash
-cd ~/allegro-assistant
+cd ~/toom
 git pull
 uv sync
 uv run alembic upgrade head
@@ -18,36 +18,36 @@ uv run python -m app.main
 ```
 
 Sprawdź w innym terminalu: `curl http://127.0.0.1:8000/health`
-oraz `/start` w Telegramie do bota Comcio.
+oraz `/start` w Telegramie do bota TOOM.
 
 ### Krok 3: Instalacja usługi systemd
 
 ```bash
-sudo cp scripts/comcio-assistant.service /etc/systemd/system/
+sudo cp scripts/toom.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable comcio-assistant
-sudo systemctl start comcio-assistant
+sudo systemctl enable toom
+sudo systemctl start toom
 ```
 
 **Zamień w pliku `.service`** użytkownika `pi` oraz ścieżkę
-`/home/pi/allegro-assistant` na rzeczywiste wartości ze swojego
+`/home/pi/toom` na rzeczywiste wartości ze swojego
 systemu (`whoami`, `pwd`).
 
 ### Krok 4: Weryfikacja
 
 ```bash
-sudo systemctl status comcio-assistant
-journalctl -u comcio-assistant -f
+sudo systemctl status toom
+journalctl -u toom -f
 ```
 
 ### Krok 5: Test restartu
 
 ```bash
-sudo systemctl restart comcio-assistant
+sudo systemctl restart toom
 sudo reboot
 ```
 
-Po restarcie: `sudo systemctl status comcio-assistant` powinno
+Po restarcie: `sudo systemctl status toom` powinno
 pokazywać `active (running)` bez ręcznej interwencji.
 
 ## Wdrożenie przez Docker (alternatywa)

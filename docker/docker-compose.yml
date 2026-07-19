@@ -1,9 +1,9 @@
 services:
-  comcio-assistant:
+  toom:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    container_name: comcio-assistant
+    container_name: toom
     restart: unless-stopped
     env_file:
       - ../.env

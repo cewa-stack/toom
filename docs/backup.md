@@ -1,4 +1,4 @@
-# Backup i odzyskiwanie - Comcio, asystent e-commerce
+# Backup i odzyskiwanie - TOOM
 
 ## Automatyczny backup
 
@@ -19,11 +19,11 @@ curl -X POST http://127.0.0.1:8000/backup/trigger
 ## Odzyskiwanie
 
 ```bash
-./scripts/restore_db.sh backups/allegro_assistant_manual_20260717_030000.db
+./scripts/restore_db.sh backups/toom_manual_20260717_030000.db
 ```
 
 Skrypt automatycznie:
-1. Zatrzymuje usługę `comcio-assistant`.
+1. Zatrzymuje usługę `toom`.
 2. Tworzy kopię bezpieczeństwa obecnej bazy (na wypadek pomyłki).
 3. Podmienia bazę na wybraną kopię.
 4. Uruchamia usługę ponownie.

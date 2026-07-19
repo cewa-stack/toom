@@ -51,7 +51,7 @@ class Container:
 
         Args:
             settings: Zwalidowana konfiguracja aplikacji.
-            bot: Instancja bota aiogram (Comcio - asystent e-commerce).
+            bot: Instancja bota aiogram (TOOM).
         """
         self._settings = settings
         self._bot = bot
@@ -140,7 +140,7 @@ class Container:
         )
 
     def notifier(self) -> TelegramNotifier:
-        """Buduje TelegramNotifier (bot Comcio) używany przez subskrybenta OrderCreated."""
+        """Buduje TelegramNotifier (bot TOOM) używany przez subskrybenta OrderCreated."""
         return TelegramNotifier(
             bot=self._bot, admin_chat_id=self._settings.telegram.admin_chat_id
         )

@@ -1,4 +1,4 @@
-"""Klawiatury inline/reply używane przez bota Comcio."""
+"""Klawiatury inline/reply używane przez bota TOOM."""
 
 from __future__ import annotations
 

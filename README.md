@@ -1,8 +1,15 @@
-# Comcio - asystent e-commerce
+<!-- Logo TOOM: podmień plik assets/branding/logo.png, aby zaktualizować logo -->
+<p align="center">
+  <img src="assets/branding/logo.png" alt="TOOM" width="320">
+</p>
 
-Osobisty asystent sprzedaży Allegro działający 24/7 na Raspberry Pi 4,
+# TOOM
+
+**Personal Commerce Intelligence Platform**
+
+Osobisty asystent sprzedaży e-commerce działający 24/7 na Raspberry Pi 4,
 zbudowany zgodnie z Clean Architecture i architekturą pluginów.
-Bot Telegram występuje pod nazwą **Comcio - asystent e-commerce**.
+Bot Telegram występuje pod nazwą **TOOM**.
 
 ## Spis treści
 
@@ -18,6 +25,7 @@ Bot Telegram występuje pod nazwą **Comcio - asystent e-commerce**.
 - [Testy](#testy)
 - [Deployment](#deployment)
 - [Jakość kodu](#jakość-kodu)
+- [Branding](#branding)
 
 ## Architektura
 
@@ -40,7 +48,7 @@ Kluczowe zasady:
 - Python 3.13 (instalowany przez `uv`)
 - Konto deweloperskie Allegro (produkcyjne lub sandbox)
 - Bot Telegram (utworzony przez [@BotFather](https://t.me/BotFather)) -
-  nazwij go np. "Comcio - asystent e-commerce"
+  nazwij go np. "TOOM"
 
 ## Instalacja
 
@@ -48,8 +56,8 @@ Pełna instrukcja przygotowania Raspberry Pi znajduje się w
 [docs/deployment.md](docs/deployment.md). Skrócona wersja:
 
 ```bash
-git clone https://github.com/TWOJA_NAZWA/allegro-assistant.git
-cd allegro-assistant
+git clone https://github.com/TWOJA_NAZWA/toom.git
+cd toom
 uv sync
 cp .env.example .env
 # Uzupełnij .env swoimi danymi (patrz sekcja Konfiguracja)
@@ -63,7 +71,7 @@ Wszystkie zmienne środowiskowe opisane są w `.env.example`. Kluczowe kroki:
 1. **Allegro**: zarejestruj aplikację na
    https://apps.developer.allegro.pl/ (typ "Allegro Auth Code with PKCE"),
    redirect URI: `http://localhost:53682/auth/callback`.
-2. **Telegram**: utwórz bota przez @BotFather (np. pod nazwą Comcio),
+2. **Telegram**: utwórz bota przez @BotFather (np. pod nazwą TOOM),
    pobierz token, oraz swój `chat_id` (np. przez
    [@userinfobot](https://t.me/userinfobot)).
 3. **Klucz szyfrowania tokenów**:
@@ -93,7 +101,7 @@ Zobacz [docs/deployment.md](docs/deployment.md).
 ```
 src/app/
 ├── api/               # Endpointy FastAPI (health, backup)
-├── bot/                # Komendy i middleware Telegram (bot Comcio, aiogram)
+├── bot/                # Komendy i middleware Telegram (bot TOOM, aiogram)
 ├── core/               # Konfiguracja, logowanie, Event Bus
 ├── database/            # Silnik SQLAlchemy, modele ORM
 ├── domain/              # Encje biznesowe i interfejsy (serce aplikacji)
@@ -115,7 +123,7 @@ Zobacz [docs/adding_new_marketplace.md](docs/adding_new_marketplace.md).
 
 ```bash
 ./scripts/backup_db.sh
-./scripts/restore_db.sh backups/allegro_assistant_manual_20260717_030000.db
+./scripts/restore_db.sh backups/toom_manual_20260717_030000.db
 ```
 
 Szczegóły: [docs/backup.md](docs/backup.md).
@@ -123,13 +131,13 @@ Szczegóły: [docs/backup.md](docs/backup.md).
 ## Aktualizacja
 
 ```bash
-cd allegro-assistant
-sudo systemctl stop comcio-assistant
+cd toom
+sudo systemctl stop toom
 git pull
 uv sync
 uv run alembic upgrade head
-sudo systemctl start comcio-assistant
-sudo systemctl status comcio-assistant
+sudo systemctl start toom
+sudo systemctl status toom
 ```
 
 ## Testy
@@ -151,6 +159,12 @@ uv run ruff check src/ tests/
 uv run mypy src/
 uv run pre-commit run --all-files
 ```
+
+## Branding
+
+Zasoby marki (logo, paleta kolorów) znajdują się w
+[assets/branding/](assets/branding/). Kolor przewodni: Neon Lime
+`#C6FF00` na tle `#111111`. Szczegóły: [docs/branding.md](docs/branding.md).
 
 ## Status projektu
 
