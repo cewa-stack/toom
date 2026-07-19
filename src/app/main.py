@@ -42,6 +42,9 @@ from app.bot.handlers import (
     stats as stats_handler,
 )
 from app.bot.handlers import (
+    stock as stock_handler,
+)
+from app.bot.handlers import (
     sync as sync_handler,
 )
 from app.bot.handlers import (
@@ -71,6 +74,7 @@ def _register_bot_routers(dispatcher: Dispatcher) -> None:
         tracking_handler,
         search_handler,
         stats_handler,
+        stock_handler,
         health_handler,
         sync_handler,
         logs_handler,

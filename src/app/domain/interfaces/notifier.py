@@ -33,6 +33,13 @@ class Notifier(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    async def notify_low_stock(
+        self, name: str, sku: str, stock: int, min_stock: int
+    ) -> None:
+        """Wysyła ostrzeżenie o osiągnięciu minimalnego stanu magazynowego."""
+        raise NotImplementedError
+
+    @abstractmethod
     async def send_text(self, text: str) -> None:
         """Wysyła dowolną wiadomość tekstową (np. alert o błędzie)."""
         raise NotImplementedError

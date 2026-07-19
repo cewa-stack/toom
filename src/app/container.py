@@ -23,15 +23,19 @@ from app.infrastructure.plugins.allegro.config import AllegroConfig
 from app.infrastructure.plugins.allegro.plugin import AllegroPlugin
 from app.infrastructure.telegram.telegram_notifier import TelegramNotifier
 from app.repositories.sqlite_event_repository import SqliteEventRepository
+from app.repositories.sqlite_inventory_repository import SqliteInventoryRepository
 from app.repositories.sqlite_order_repository import SqliteOrderRepository
 from app.repositories.sqlite_return_repository import SqliteReturnRepository
 from app.repositories.sqlite_shipment_repository import SqliteShipmentRepository
+from app.repositories.sqlite_stock_sync_repository import SqliteStockSyncRepository
 from app.repositories.sqlite_token_store import SqliteTokenStore
 from app.services.backup_service import BackupService
 from app.services.events_service import EventsService
 from app.services.health_service import HealthService, SyncStatus
+from app.services.inventory_service import InventoryService
 from app.services.search_service import SearchService
 from app.services.stats_service import StatsService
+from app.services.stock_sync_service import StockSyncService
 from app.services.sync_orders_service import SyncOrdersService
 from app.services.tracking_service import TrackingService
 
@@ -137,6 +141,17 @@ class Container:
             backup_directory=self._settings.backup.backup_directory,
             retention_days=self._settings.backup.retention_days,
             event_bus=self.event_bus,
+        )
+
+    def inventory_service(self, session: AsyncSession) -> InventoryService:
+        """Buduje InventoryService dla komend /stock."""
+        return InventoryService(SqliteInventoryRepository(session))
+
+    def stock_sync_service(self, session: AsyncSession) -> StockSyncService:
+        """Buduje StockSyncService dla automatycznej synchronizacji stanów."""
+        return StockSyncService(
+            inventory_repository=SqliteInventoryRepository(session),
+            stock_sync_repository=SqliteStockSyncRepository(session),
         )
 
     def notifier(self) -> TelegramNotifier:

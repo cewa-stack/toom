@@ -75,6 +75,25 @@ class TelegramNotifier(Notifier):
         )
         await self.send_text(text)
 
+    async def notify_low_stock(
+        self, name: str, sku: str, stock: int, min_stock: int
+    ) -> None:
+        """
+        Wysyła ostrzeżenie o osiągnięciu minimalnego stanu magazynowego.
+
+        Nazwa i SKU pochodzą z danych wprowadzonych przez użytkownika,
+        więc są escapowane (parse_mode=HTML).
+        """
+        text = (
+            "⚠️ <b>MAGAZYN - NISKI STAN</b>\n\n"
+            f"Produkt: {html.quote(name)}\n"
+            f"SKU: {html.quote(sku)}\n"
+            f"Pozostało: {stock} szt. (minimum: {min_stock})\n\n"
+            "Produkt dodano do listy zakupów.\n"
+            "Rozważ zamówienie nowej dostawy."
+        )
+        await self.send_text(text)
+
     async def send_text(self, text: str) -> None:
         """
         Wysyła dowolny tekst na chat administratora, z odpornością na błędy.

@@ -13,11 +13,15 @@ from app.core.config import get_settings
 from app.database.base import Base
 from app.database.models import (  # noqa: F401 - import wymagany dla autogenerate
     EventModel,
+    InventoryItemModel,
+    InventoryMovementModel,
+    OfferLinkModel,
     OrderModel,
     ProductModel,
     ReturnModel,
     SettingsModel,
     ShipmentModel,
+    StockSyncModel,
     TokenModel,
 )
 

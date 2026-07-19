@@ -166,6 +166,31 @@ Zasoby marki (logo, paleta kolorów) znajdują się w
 [assets/branding/](assets/branding/). Kolor przewodni: Neon Lime
 `#C6FF00` na tle `#111111`. Szczegóły: [docs/branding.md](docs/branding.md).
 
+## Magazyn (IMS)
+
+TOOM zawiera Inventory Management System - centralny magazyn produktów
+niezależny od marketplace. Stany są automatycznie synchronizowane po
+każdym zamówieniu, anulowaniu i zwrocie (z ochroną przed podwójnym
+odjęciem), a przy osiągnięciu minimalnego stanu bot wysyła ostrzeżenie
+i dodaje produkt do listy zakupów.
+
+Najważniejsze komendy:
+
+```
+/stock                      # aktualny stan magazynu
+/stock new PET60 Butelka    # nowy produkt
+/stock set|add|remove PET60 100
+/stock min PET60 20         # próg ostrzeżeń
+/stock report               # raport z prognozą zapasów
+/stock buy                  # lista zakupów
+/stock history [SKU]        # historia zmian
+/stock link 12345678 PET60 2  # mapowanie oferty (zestawy)
+```
+
+Oferty marketplace są dopasowywane do produktów magazynowych po
+mapowaniu `/stock link` (obsługa zestawów wieloskładnikowych), a gdy go
+brak - po SKU równym identyfikatorowi produktu z oferty.
+
 ## Status projektu
 
 ✅ W pełni funkcjonalny (Etapy 1-16 ukończone)
