@@ -7,8 +7,16 @@ biznesowe, jak i odpowiedzi na komendy. Zapisane identyfikatory są potem
 wykorzystywane przez nocne czyszczenie czatu (02:00) do usunięcia wszystkich
 wcześniejszych wiadomości bota.
 
-Zapis do bazy jest w pełni odporny na błędy - problem z zapisem nie może
-przerwać wysyłki wiadomości do użytkownika.
+WAŻNE: `make_request` zwraca gotowy obiekt encji (np. `Message`)
+BEZPOŚREDNIO, a nie opakowany w `Response` - mimo że sygnatura
+`BaseRequestMiddleware.__call__` w aiogram deklaruje typ zwracany jako
+`Response[TelegramType]`. To rozbieżność między adnotacją typu a
+rzeczywistym zachowaniem biblioteki w wersji 3.30 - nie polegać na `.result`.
+
+Cała logika śledzenia (łącznie z samym odczytem odpowiedzi) jest objęta
+try/except na najwyższym poziomie - błąd w śledzeniu NIE MOŻE przerwać
+wysyłki wiadomości do użytkownika, niezależnie od tego, na jakim etapie
+by się pojawił.
 """
 
 from __future__ import annotations
@@ -21,7 +29,7 @@ from aiogram.client.session.middlewares.base import (
     NextRequestMiddlewareType,
 )
 from aiogram.methods import SendMessage
-from aiogram.methods.base import Response, TelegramMethod, TelegramType
+from aiogram.methods.base import TelegramMethod, TelegramType
 from aiogram.types import Message
 from loguru import logger
 
@@ -48,14 +56,34 @@ class MessageTrackingMiddleware(BaseRequestMiddleware):
         make_request: NextRequestMiddlewareType[TelegramType],
         bot: Bot,
         method: TelegramMethod[TelegramType],
-    ) -> Response[TelegramType]:
-        """Wykonuje żądanie i rejestruje ID, jeśli była to wysyłka wiadomości."""
-        response = await make_request(bot, method)
+    ) -> TelegramType:
+        """
+        Wykonuje żądanie i - dla wysyłki wiadomości - rejestruje jej ID.
+
+        Śledzenie jest całkowicie odseparowane od samej wysyłki: `result`
+        (odpowiedź Telegrama) jest zwracane wywołującemu niezależnie od
+        tego, czy próba śledzenia się powiodła.
+
+        Adnotacja zwracanego typu (`TelegramType`) celowo odbiega od
+        deklaracji w `BaseRequestMiddleware.__call__` (`Response[TelegramType]`)
+        - ta ostatnia jest błędna względem rzeczywistego zachowania
+        `AiohttpSession.make_request()`, które zwraca encję bezpośrednio
+        (potwierdzone testem end-to-end na realnym obiekcie Bot).
+        """
+        result = await make_request(bot, method)
 
         if isinstance(method, SendMessage):
-            await self._track(response.result)
+            try:
+                await self._track(result)
+            except Exception:
+                # Śledzenie jest pomocnicze - jego błąd (na dowolnym etapie)
+                # nie może wpłynąć na już dostarczoną wiadomość.
+                logger.exception(
+                    "Nie udało się zarejestrować wysłanej wiadomości do "
+                    "czyszczenia czatu (śledzenie pominięte, wiadomość dostarczona)"
+                )
 
-        return response
+        return result  # type: ignore[return-value]
 
     async def _track(self, result: Any) -> None:
         """Zapisuje ID wiadomości do bazy, ignorując wiadomości spoza czatu admina."""
@@ -64,27 +92,17 @@ class MessageTrackingMiddleware(BaseRequestMiddleware):
         if result.chat.id != self._admin_chat_id:
             return
 
-        try:
-            session = get_current_session()
-            if session is not None:
-                # Wysyłka w ramach handlera - zapis w jego sesji (to samo
-                # połączenie), by uniknąć rywalizacji o blokadę zapisu SQLite.
-                await self._container.telegram_message_repository(session).record(
+        session = get_current_session()
+        if session is not None:
+            # Wysyłka w ramach handlera - zapis w jego sesji (to samo
+            # połączenie), by uniknąć rywalizacji o blokadę zapisu SQLite.
+            await self._container.telegram_message_repository(session).record(
+                chat_id=result.chat.id, message_id=result.message_id
+            )
+        else:
+            # Wysyłka poza handlerem (powiadomienie, zadanie schedulera) -
+            # brak otwartej sesji, więc otwieramy własną.
+            async with self._container.session_scope() as own_session:
+                await self._container.telegram_message_repository(own_session).record(
                     chat_id=result.chat.id, message_id=result.message_id
                 )
-            else:
-                # Wysyłka poza handlerem (powiadomienie, zadanie schedulera) -
-                # brak otwartej sesji, więc otwieramy własną.
-                async with self._container.session_scope() as own_session:
-                    await self._container.telegram_message_repository(
-                        own_session
-                    ).record(
-                        chat_id=result.chat.id, message_id=result.message_id
-                    )
-        except Exception:
-            # Śledzenie wiadomości jest pomocnicze - jego błąd nie może
-            # wpłynąć na dostarczenie wiadomości do użytkownika.
-            logger.exception(
-                "Nie udało się zapisać ID wiadomości {} do czyszczenia czatu",
-                getattr(result, "message_id", "?"),
-            )
